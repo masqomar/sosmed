@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use TikTok\Authentication\Authentication;
 use TikTok\User\User as TikTokUser;
+use TikTok\Request\Params;
+use TikTok\Request\Fields;
 use App\Models\User as AppUser;
 
 class TikTokAuthController extends Controller
@@ -55,7 +57,24 @@ class TikTokAuthController extends Controller
             'access_token' => $token,
         ]);
 
-        $userInfo = $user->getSelf();
+        // Required fields for TikTok /user/info/ endpoint
+        $fields = [
+            Fields::OPEN_ID,
+            Fields::UNION_ID,
+            Fields::DISPLAY_NAME,
+            Fields::AVATAR_URL,
+            Fields::AVATAR_URL_100,
+            Fields::FOLLOWER_COUNT,
+            Fields::FOLLOWING_COUNT,
+            Fields::LIKES_COUNT,
+            Fields::VIDEO_COUNT,
+            Fields::PROFILE_DEEP_LINK,
+            Fields::IS_VERIFIED,
+            Fields::BIO_DESCRIPTION,
+        ];
+
+        // Pass fields as query params
+        $userInfo = $user->getSelf(Params::getFieldsParam($fields));
 
         return response()->json($userInfo);
     }
