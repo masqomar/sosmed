@@ -21,7 +21,8 @@ class TikTokAuthController extends Controller
         ]);
 
         $redirectUri = config('services.tiktok.redirect_uri');
-        $scope = ['user.info.basic', 'video.list']; // sesuaikan kebutuhan
+        // Request full scopes needed for user info fields (profile + stats) and video list
+        $scope = ['user.info.basic', 'user.info.profile', 'user.info.stats', 'video.list'];
 
         $authUrl = $auth->getAuthenticationUrl($redirectUri, $scope, csrf_token());
 
