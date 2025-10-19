@@ -54,6 +54,21 @@ class TikTokAuthController extends Controller
     {
         $token = Auth::user()->tiktok_token;
 
+        // If no token yet, prompt user to connect with necessary scopes
+        if (!$token) {
+            $auth = new Authentication([
+                'client_key' => config('services.tiktok.client_key'),
+                'client_secret' => config('services.tiktok.client_secret'),
+                'graph_version' => config('services.tiktok.graph_version', 'v2'),
+            ]);
+
+            $redirectUri = config('services.tiktok.redirect_uri');
+            $scope = ['user.info.basic', 'user.info.profile', 'user.info.stats', 'video.list'];
+
+            $authUrl = $auth->getAuthenticationUrl($redirectUri, $scope, csrf_token());
+            return redirect()->away($authUrl);
+        }
+
         $user = new TikTokUser([
             'access_token' => $token,
         ]);
@@ -76,6 +91,21 @@ class TikTokAuthController extends Controller
 
         // Pass fields as query params
         $userInfo = $user->getSelf(Params::getFieldsParam($fields));
+
+        // If scope is missing, prompt re-auth with required scopes
+        if (isset($userInfo['error']['code']) && $userInfo['error']['code'] === 'scope_not_authorized') {
+            $auth = new Authentication([
+                'client_key' => config('services.tiktok.client_key'),
+                'client_secret' => config('services.tiktok.client_secret'),
+                'graph_version' => config('services.tiktok.graph_version', 'v2'),
+            ]);
+
+            $redirectUri = config('services.tiktok.redirect_uri');
+            $scope = ['user.info.basic', 'user.info.profile', 'user.info.stats', 'video.list'];
+
+            $authUrl = $auth->getAuthenticationUrl($redirectUri, $scope, csrf_token());
+            return redirect()->away($authUrl);
+        }
 
         return response()->json($userInfo);
     }
