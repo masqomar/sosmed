@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Head, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { type BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -13,6 +13,15 @@ export default function TikTokAccountsPage() {
   const { props } = usePage<any>();
   const { stats, accounts } = props;
   const [query, setQuery] = useState('');
+  const [info, setInfo] = useState<any | null>(null);
+
+  useEffect(() => {
+    fetch('/tiktok/user', { headers: { Accept: 'application/json' } })
+      .then((res) => res.json())
+      .then((data) => setInfo(data))
+      .catch(() => {});
+  }, []);
+
   const filteredAccounts = useMemo(() => {
     if (!Array.isArray(accounts)) return [];
     return accounts.filter((a: any) =>
@@ -89,9 +98,93 @@ export default function TikTokAccountsPage() {
             <Input
               className="pl-9"
               placeholder="Search accounts..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
             />
           </div>
         </div>
+
+        {/* Connected Account (Live) */}
+        {info?.data?.user && (
+          <div className="rounded-xl border border-sidebar-border/70 bg-background p-6 shadow-xs dark:border-sidebar-border">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                {/* Avatar */}
+                <div className="relative inline-flex size-12 items-center justify-center overflow-hidden rounded-full border border-sidebar-border/70 bg-muted/50">
+                  {info.data.user.avatar_url_100 ? (
+                    <img
+                      src={info.data.user.avatar_url_100}
+                      alt={info.data.user.display_name ?? 'TikTok'}
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-lg font-semibold">
+                      {(info.data.user.display_name ?? 'T')[0]}
+                    </span>
+                  )}
+                </div>
+
+                {/* Title and badges */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold">{info.data.user.display_name}</h2>
+                    {/* platform glyph */}
+                    <span className="inline-flex size-5 items-center justify-center rounded-sm bg-[#000000] text-white text-[10px] font-bold">TT</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                      Connected
+                    </span>
+                    {info.data.user.profile_deep_link && (
+                      <a
+                        href={info.data.user.profile_deep_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-medium text-foreground/70"
+                      >
+                        View Profile
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right-side CTA */}
+              <div className="flex items-center gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <a href="/tiktok/user">Raw JSON</a>
+                </Button>
+              </div>
+            </div>
+
+            {/* Metrics */}
+            <div className="mt-6 grid gap-6 sm:grid-cols-3">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex size-8 items-center justify-center rounded-md bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">👥</span>
+                <div>
+                  <div className="text-base font-semibold">{info.data.user.follower_count}</div>
+                  <div className="text-xs text-muted-foreground">Followers</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="inline-flex size-8 items-center justify-center rounded-md bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">❤️</span>
+                <div>
+                  <div className="text-base font-semibold">{info.data.user.likes_count}</div>
+                  <div className="text-xs text-muted-foreground">Likes</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="inline-flex size-8 items-center justify-center rounded-md bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">🎬</span>
+                <div>
+                  <div className="text-base font-semibold">{info.data.user.video_count}</div>
+                  <div className="text-xs text-muted-foreground">Videos</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Accounts list */}
         <div className="grid gap-4">
