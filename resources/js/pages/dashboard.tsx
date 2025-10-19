@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -30,7 +30,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center">
                     <Button asChild>
-                        <Link href="/auth/tiktok/redirect">Connect TikTok</Link>
+                        <a href="/auth/tiktok/redirect">Connect TikTok</a>
                     </Button>
                 </div>
                 <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
